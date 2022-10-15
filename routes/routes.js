@@ -1,17 +1,19 @@
 const route = require("express").Router();
+const { Post } = require("../models/models");
 
 const data = [];
 
-route.get("/", (req, res) => {
-    if(data.length <= 0){
+route.get("/", async (req, res) => {
+    const result = await Post.find({});
+    if(result.length <= 0){
         res.status(200).json({"status": 200, "message": "No data found!", "data": []});
         return;
     }
-    res.status(200).json({"status": 200, "message": 0, "data": data});
+    res.status(200).json({"status": 200, "message": 0, "data": result});
 });
 
-route.get("/:id", (req, res) => {
-    const property = data.find((item) => item["id"] == req.params.id);
+route.get("/:id", async (req, res) => {
+    const property = await Post.findOne({"_id": req.params.id});
     if(property){
         res.status(200).json({"status": 200, "message": 0, "data": property});
     } else {
@@ -19,10 +21,10 @@ route.get("/:id", (req, res) => {
     }
 });
 
-route.post("/", (req, res) => {
+route.post("/", async (req, res) => {
     const entry = req.body;
     if(
-        !req.body.type ||
+        !req.body.propertyType ||
         !req.body.price ||
         !req.body.priceUnit ||
         !req.body.baths ||
@@ -41,7 +43,7 @@ route.post("/", (req, res) => {
 
     // Check if type is valid
     const types = ["house", "flat", "upper portion", "lower portion", "farm house", "room", "penthouse"];
-    if(!types.includes(req.body.type)){
+    if(!types.includes(req.body.propertyType)){
         res.status(406).send({"status": 406, "message": "Property type not allowed", "data": []});
         return;
     }
@@ -92,9 +94,22 @@ route.post("/", (req, res) => {
 
     // Code to store data
     entry["status"] = "active";
-    data.push(entry);
-    res.status(201).json({"status": 201, "message": "Added Successfully", "data": entry});
+    const post = new Post(entry);
+    const result = await post.save();
+    if(result["_id"]){
+        res.status(201).json({"status": 201, "message": "Added Successfully", "data": result});
+        return;
+    }
+    res.status(500).json({"status": 500, "message": "Failed to add new property", "data": result});
+});
 
+route.delete("/:id", async (req, res) => {
+    const result = await Post.deleteOne({_id: req.params.id});
+    if(result["deletedCount"] === 1){
+        res.status(202).json({"status": 202, "message": "Deleted Successfully", "data": result});
+        return;
+    }
+    res.status(404).json({"status": 404, "message": "Property not found!", "data": result});
 });
 
 
