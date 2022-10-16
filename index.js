@@ -8,7 +8,7 @@ const api = require("./routes/routes");
 // Configure .env
 require("dotenv").config();
 
-mongoose.connect(process.env.DB_URI, { useNewUrlParser: true }, console.log("Connected to db"));
+mongoose.connect("mongodb+srv://arhex:hEllo911@arhex.pp07y.mongodb.net/arhex-estate?retryWrites=true&w=majority", { useNewUrlParser: true }, console.log("Connected to db"));
 const PORT = process.env.PORT || 4000;
 
 // Middlewares
